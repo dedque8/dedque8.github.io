@@ -6,7 +6,7 @@ categories: generation
 image: gnome1.jpg
 ---
 
-Perlin noise is a default go-to option if you need to generate a terrain for your game. Simple to understand, computationally light (as long as you know what you are doing), and is either already implemented in your favorite engine or can be easily found in any language. The results are usually reasonable, but way too boring and predictable if terrain plays huge role in your game. Every terrain is unique and experiments are the most important part of making them remarkable, but of these ideas may help to start with something better than an x-ray of a random cloud.
+Perlin noise is a default go-to option if you need to generate a terrain for your game. Simple to understand, computationally light (as long as you know what you are doing), and is either already implemented in your favorite engine, or can be easily found and copypasted in a language you need. The results are usually reasonable, but way too boring and predictable if terrain plays a huge role in your game. Experiments and fine-tuning of parameters can only go so far towards making a remarkable terrian, so this post is about some more advanced techniques developers can utilize. They may be not perfect for all needs, but definitely better than an x-ray of a random cloud.
 
 ## Fractal noise aka linear combination
 
@@ -14,7 +14,12 @@ The easiest way to generate a somewhat realistic terrain is to use a *fractal no
 
 ![noise1](https://eknm-hub-public.s3.eu-central-1.amazonaws.com/perlin-noise/noise1.png)
 
-The only problem is that it looks too random and cloudy - terrains in real life are not like that. Fantasy maps are usually not so tedious as well. What lacks here is some kind of structure and meaning, and here's how multiple layers of noise can be interpreted:
+Where graphs left-to-right show:
+- Projection function (will be explained in the next section)
+- Grayscale highmap
+- Color interpretation of the highmap
+
+The only problem is that it looks too random and cloudy - terrains in real life are not like that. Fantasy maps are usually not so tedious as well. What lacks here is some kind of structure and meaning, and here's how multiple layers of noise can be defined:
 
 1. Low frequency, high amplitude - large scale features, like mountains or large lakes
 2. Moderate frequency, moderate amplitude - smaller landscape features: mounds, valleys, low hills
@@ -31,7 +36,7 @@ To understand how to come up with better function, let's use an illustration fro
 
 ![book_landscape](https://eknm-hub-public.s3.eu-central-1.amazonaws.com/perlin-noise/water_circulation.jpg)
 
-Here coast has it's own curve, flatlands another one, and mountains yet another. If to draw a function, which represents height above sea level, it will look like a set of disconnected segments, where each segment has it's own slope. Let's call it a projection function. In our game I used something similar to this one:
+Here coast has it's own curve, flatlands another one, and mountains yet another. If to draw a function, which represents height above sea level, it will look like a set of disconnected segments, where each segment has it's own slope. Let's call it a `projection function`. In our game I used a function similar to this one:
 
 ```
 def forestProjection(x):
