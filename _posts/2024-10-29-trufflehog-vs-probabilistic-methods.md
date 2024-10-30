@@ -6,7 +6,9 @@ categories: sec
 image: bomb_vs_baby.jpg
 ---
 
-It's a typical situation: you are in a hurry, leave your keys somewhere, then try to find them and fail miserably. Kitchen table? Coat hangers? Random json file in git repo? Maybe. That's why tools like TruffleHog exist. They may be good, but are they perfect? Let's test it on an example of AWS IAM secret key, which usually looks like `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEx4mPL3kY1`. This is already a potential leak, but let's place two more truffles: one in an otherwise empty file with nonambiguous name *secret.key* and another one in a python snippet written to connect to AWS. Let's see if TruffleHog finds it:
+You may already know where children come from, but do you know from where free API keys come? Mostly from carefree developers who pushes them to a public repo. And if you are not as unconcerned as these people are, you probaby thought about tools to keep your keys safe. The most popular one of them is, arguably, TruffleHog. But how good is it? I can imagine people putting their keys in most random places possible, some of them are detectable using a simple regexp, some - not. Can it detect them all? Let's try.
+
+As an example we can take a AWS IAM secret key, which usually looks like `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEx4mPL3kY1`. This is already a potential leak, but let's place two more truffles: one in an otherwise empty file with nonambiguous name *secret.key* and another one in a python snippet written to connect to AWS. Let's see if TruffleHog finds them:
 
 ```
 🐷🔑🐷  TruffleHog. Unearth your secrets. 🐷🔑🐷
@@ -17,7 +19,7 @@ It's a typical situation: you are in a hurry, leave your keys somewhere, then tr
 
 No, it doesn't. And obviously I'm not the only one to find this strange behavior, for example [this github issue](https://github.com/trufflesecurity/trufflehog/issues/2940) highlights similar concerns. And what do developers think about not finding this secret? Turns out that they don't even try to: [trufflesecurity.com/blog/its-impossible-to-find-every-vulnerability-so-we-dont-try-to](https://trufflesecurity.com/blog/its-impossible-to-find-every-vulnerability-so-we-dont-try-to)
 
-But this doesn't mean that I should not try.
+But this doesn't mean that I should not try. The aim of this experiment was to find out if there is a way to detect randomly generated keys in files. Verifying and filtering false-positives is out of scope, as well as detection of other types of keys. This research **DOES NOT** replace or belittle work and vision of TruffleHog or any other tool. It's a completely different approach, as will be later explained (somewhere in conclusion).
 
 # Characterization of secret keys
 
@@ -119,11 +121,11 @@ trufflehog-main\pkg\detectors\pypi\pypi.go: pypi-AgEIcHlwaS5vcmcCJ -> 0.68933727
 trufflehog-main\pkg\detectors\pypi\pypi.go: pypi-AgEIcHlwaS5vcmcCJ -> 0.6893372718161684
 ```
 
-All of these instances are NOT actual private keys and have no real security implications. However it's not the best pattern to store certificates in *http.go* as plain code. And hope they won't forget about their "TODO: Expires Monday, June 4" comment.
+All of these instances are **NOT** actual private keys and have no real security implications. However, imho, it's not the best idea to store certificates in *http.go* as plain code. And hope they won't forget about their "TODO: Expires Monday, June 4" comment.
 
 # Conclusion
 
-The tool I wrote is not a good product at all, but I consider it a success as an experiment. The biggest problem is probabilistic nature - it's hard to draw a line between secrets and just a bit weird strings. It requires human input, or perhaps more advanced techniques like machine learning. So in some cases deterministic tools like TruffleHog may work better.
+The tool I wrote is not a good product at all, but I consider it a successful experiment. The biggest problem is probabilistic nature - it's hard to draw a line between secrets and just a bit weird strings. It requires human input, or perhaps more advanced techniques like machine learning. So in some cases deterministic tools like TruffleHog may work better.
 
 In general, probabilistic vs deterministic methods is a classic example of a unavoidable tradeoff: probabilistic methods create false positives, deterministic - false negatives. General recomentations are following:
 - Start key monitoring early in the project lifecycle
