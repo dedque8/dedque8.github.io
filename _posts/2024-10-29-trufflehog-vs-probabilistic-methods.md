@@ -6,7 +6,7 @@ categories: sec
 image: bomb_vs_baby.jpg
 ---
 
-It's a typical situation: you are in a hurry, leave your keys somewhere, then try to find them and fail miserably. Kitchen table? Coat hangers? Random json file in git repo? Maybe. That's why tools like TruffleHog exist. They may be good, but are they perfect? Let's test it on an example of AWS IAM secret key, which usually looks like `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEx4mPL3kY1`. This is already a potential leak, but let's place two more truffles: one in an otherwise empty file with nonambiguous name `secret.key` and another one in a python snippet written to connect to AWS. Let's see if TruffleHog finds it:
+It's a typical situation: you are in a hurry, leave your keys somewhere, then try to find them and fail miserably. Kitchen table? Coat hangers? Random json file in git repo? Maybe. That's why tools like TruffleHog exist. They may be good, but are they perfect? Let's test it on an example of AWS IAM secret key, which usually looks like `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEx4mPL3kY1`. This is already a potential leak, but let's place two more truffles: one in an otherwise empty file with nonambiguous name *secret.key* and another one in a python snippet written to connect to AWS. Let's see if TruffleHog finds it:
 
 ```
 🐷🔑🐷  TruffleHog. Unearth your secrets. 🐷🔑🐷
@@ -15,11 +15,11 @@ It's a typical situation: you are in a hurry, leave your keys somewhere, then tr
 2024-10-29T08:52:07+01:00	info-0	trufflehog	finished scanning	{"chunks": 1328, "bytes": 651365, "verified_secrets": 0, "unverified_secrets": 0, "scan_duration": "69.708726ms", "trufflehog_version": "3.82.13"}
 ```
 
-No, it doesn't. And obviously I'm not the only one to find this strange behavior, for example [this github issue](https://github.com/trufflesecurity/trufflehog/issues/2940) highlights similar concerns. And what do developers think about not finding this secret? Turns out that they don't even try to: https://trufflesecurity.com/blog/its-impossible-to-find-every-vulnerability-so-we-dont-try-to
+No, it doesn't. And obviously I'm not the only one to find this strange behavior, for example [this github issue](https://github.com/trufflesecurity/trufflehog/issues/2940) highlights similar concerns. And what do developers think about not finding this secret? Turns out that they don't even try to: [trufflesecurity.com/blog/its-impossible-to-find-every-vulnerability-so-we-dont-try-to](https://trufflesecurity.com/blog/its-impossible-to-find-every-vulnerability-so-we-dont-try-to)
 
 But this doesn't mean that I should not try.
 
-## Characterization of secret keys
+# Characterization of secret keys
 
 Sensitive credentials can take a lot of different forms, but for now let's focus on the most common one - randomly generated string. Basic properties of such string are following:
 - Limited pool of special characters (e.g. no whitespace characters or quotation marks)
@@ -29,18 +29,18 @@ Sensitive credentials can take a lot of different forms, but for now let's focus
 
 This information is insufficient to build deterministic regexp-like search criterias, instead we'll try to evaluate the *probability* of a string being a key. Of course only after filtering out things that are definitely not keys: non-unicode text, git files, e.t.c. 
 
-## Detection methods
-### Trie
+# Detection methods
+## Trie
 
-**Assumption 1: keys are not prefixes of other words**
-**Assumption 2: keys don't have other words as long prefixes**
-**Assumption 3: keys are not repeated frequently**
+**Assumption 1: keys are not prefixes of other words**  
+**Assumption 2: keys don't have other words as long prefixes**  
+**Assumption 3: keys are not repeated frequently**  
 
 To evaluate all 3 assumptions we can use a trie, insert all words in it and make result probability inversely proportional to the length of the longest existing prefix and the number of word repetitions.
 
 **Verdict: too simple to meaningfully contribute, but definitely not harmful**, therefore it doesn't deserve "criteria" title
 
-### Chi-squared criteria 
+## Chi-squared criteria 
 
 **Assumption: randomly generated keys have uniform distribution of characters**
 
@@ -48,7 +48,7 @@ The chi-squared test can be used to compare the observed frequency of characters
 
 **Verdict: works well in average, but has outliers**
 
-### Shannon entropy criteria
+## Shannon entropy criteria
 
 **Assumption: randomly generated keys have higher level of entropy than meaningful strings**
 
@@ -69,7 +69,7 @@ All 3 planted secrets are in this top 10, but non-random words are as well.
 
 **Verdict: works, but has too high false-positive rate**
 
-### Kolmogorov-Smirnov criteria
+## Kolmogorov-Smirnov criteria
 
 **Assumption: randomly generated keys don't have the same characters distribution as whole sample**
 
@@ -77,7 +77,7 @@ The idea is similar to chi-squared, but instead measures how far the random stri
 
 **Verdict: too bad**
 
-### N-gram criteria
+## N-gram criteria
 
 **Assumption: randomly generated keys contain uncommon substrings**
 
@@ -87,7 +87,7 @@ Besides this, n-gram criteria has a potential work much better after learning on
 
 **Verdict: good**
 
-## Evaluation
+# Evaluation
 
 Final evaluation criteria is a combination of multiple criterias described above. I won't provide much details just in case I decide to turn it into an actual product and sell to a bunch of tech companies. Anyway, here's top 10 results from this blog repo:
 
@@ -119,11 +119,11 @@ trufflehog-main\pkg\detectors\pypi\pypi.go: pypi-AgEIcHlwaS5vcmcCJ -> 0.68933727
 trufflehog-main\pkg\detectors\pypi\pypi.go: pypi-AgEIcHlwaS5vcmcCJ -> 0.6893372718161684
 ```
 
-All of these instances are NOT actual private keys and have no real security implications. However it's not the best patter to store certificates in *http.go* as plain code. And hope they won't forget about their "TODO: Expires Monday, June 4" comment.
+All of these instances are NOT actual private keys and have no real security implications. However it's not the best pattern to store certificates in *http.go* as plain code. And hope they won't forget about their "TODO: Expires Monday, June 4" comment.
 
-## Conclusion
+# Conclusion
 
-The tool I wrote is in no way or form a good product, but I consider it a success as an experiment. It's biggest problem is probabilistic nature - it's hard to draw a line between secrets and just a bit weird strings. It requires human input, or perhaps more advanced techniques like machine learning. And in some cases deterministic tools like TruffleHog may work better.
+The tool I wrote is not a good product at all, but I consider it a success as an experiment. The biggest problem is probabilistic nature - it's hard to draw a line between secrets and just a bit weird strings. It requires human input, or perhaps more advanced techniques like machine learning. So in some cases deterministic tools like TruffleHog may work better.
 
 In general, probabilistic vs deterministic methods is a classic example of a unavoidable tradeoff: probabilistic methods create false positives, deterministic - false negatives. General recomentations are following:
 - Start key monitoring early in the project lifecycle
