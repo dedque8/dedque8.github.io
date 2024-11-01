@@ -6,7 +6,7 @@ categories: sec
 image: bomb_vs_baby.jpg
 ---
 
-You may already know where children come from, but do you know from where free API keys come? Mostly from carefree developers who pushes them to a public repo. And if you are not as unconcerned as these people are, you probaby thought about tools to keep your keys safe. The most popular one of them is, arguably, TruffleHog. But how good is it? I can imagine people putting their keys in most random places possible, some of them are detectable using a simple regexp, some - not. Can it detect them all? Let's try.
+Have you ever wondered where free API keys come from? Leaks? Data breaches? Actually, they mostly come from carefree developers who push them to a public repo. And if you are not as unconcerned as these people are, you probaby thought about tools to keep your keys safe. The most popular one of them is, arguably, TruffleHog. But how good is it? I can imagine people putting their keys in most random places possible, some of them are detectable using a simple regexp, some - not. Can it detect them all? Let's try.
 
 As an example we can take a AWS IAM secret key, which usually looks like `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEx4mPL3kY1`. This is already a potential leak, but let's place two more truffles: one in an otherwise empty file with nonambiguous name *secret.key* and another one in a python snippet written to connect to AWS. Let's see if TruffleHog finds them:
 
