@@ -17,11 +17,19 @@
   overflow: hidden;
   border-radius: 5px;
   margin-bottom: 1rem;
+  max-height: 20rem;
+  object-fit: cover;
 }
 
 .thumbnail-container img{
   margin-top: -11.5%;
   margin-bottom: -11.5%;
+  width: 100%;
+}
+
+.thumbnail-container-a {
+  display: block;
+  width: 100%;
 }
 
 /*
