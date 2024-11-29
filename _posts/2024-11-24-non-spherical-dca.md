@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Non-spheric DCA in non-vacuum environment"
+title:  "Non-spherical DCA in non-vacuum environment"
 date:   2024-11-25 00:00:00
 categories: finance
 image: sponge_dca.jpg
