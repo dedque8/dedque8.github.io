@@ -19,9 +19,11 @@ I don't expect them to be completely wrong, but their proofs and experiments are
 
 ## Glossary
 
-LS - Lump Sum Strategy
-DCA - Dollar-Cost Averaging Strategy 
-TDCA - Treasury Dollar-Cost Averaging Strategy (defined later)
+LS - Lump Sum Strategy  
+
+DCA - Dollar-Cost Averaging Strategy  
+
+TDCA - Treasury Dollar-Cost Averaging Strategy (defined later)  
 
 ## Baseline comparison
 
