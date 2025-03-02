@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Sell to optimists, buy from pessimists"
-date:   2025-13-02 00:00:00
+date:   2025-03-02 00:00:00
 categories: finance
 image: bus_temists.jpg
 ---
