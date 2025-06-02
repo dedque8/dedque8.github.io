@@ -21,7 +21,7 @@ Some languages and build systems avoid these problems due to specific design cho
 
 ## Case 1: False loop
 
-The simplest case of circular dependency is the absence of circular dependencies. Basically, one (or more) edges in the cycle are redundant and can be eliminated without any functional modifications of code. With good CI/CD pipeline unused dependencies should be caught beforehand.
+The simplest case of circular dependency is the existence of unnecessary dependencies. Basically, one (or more) edges in the cycle are redundant and can be eliminated without any functional modifications to the code. With a good CI/CD pipeline, unused dependencies should be caught beforehand.
 
 ![diagram1](https://eknm-hub-public.s3.eu-central-1.amazonaws.com/circular-deps/diagram1.jpg)
 
@@ -36,12 +36,12 @@ Let's test how Cursor handles this situation in a very simple Rust project with 
 
 ## Case 2: Bloated modules
 
-This case can be characterized by the absence of logical dependency loops, but existence of physical ones. A good example is a god-module that provides a pile of loosely coupled functionality. It either depends on something, or this something depends on it.
+This case can be characterized by the absence of logical dependency loops, but the existence of physical ones. A good example is a god-module that provides a pile of loosely coupled functionality. It either depends on something, or this something depends on it.
 
 ![diagram1](https://eknm-hub-public.s3.eu-central-1.amazonaws.com/circular-deps/diagram2.jpg)
 
 The best cure is to divide it. But how much? Uncle Bob says that any function longer than 4-5 lines should be split up, but (arguably) that's not reasonable. Single Responsibility Principle is good, but:
-- It can't be described in concrete rules
+- In practice definition can be ambiguous
 - People don't always follow it, and LLMs are trained on their work
 
 So let's see what Cursor does with the same Rust project as in the previous case, but with a real dependency in code:
@@ -53,16 +53,16 @@ So let's see what Cursor does with the same Rust project as in the previous case
 | Gemini 2.5 Pro | No | Suggested solution hints |
 | GPT 4.1 | No | Suggested solution hints |
 
-## Case 3: Houston, we have a problem
+## Case 3: Houston, we have a problem...
 
-And this problem can't be fixed by doing a trivial cleanup or putting modules in good order. This is an actual logical dependency cycle, and your logic is cooked. And there's no simple answer how to fix it, just a few possible options are:
+...and this problem can't be fixed by doing a trivial cleanup or putting modules in good order. This is an actual logical dependency cycle, and your logic is cooked. And there's no simple answer to how to fix it, just a few possible options are:
 - Operate with interfaces and inject dependencies
 - Create a mediator
 - Use callbacks
 
 ![diagram1](https://eknm-hub-public.s3.eu-central-1.amazonaws.com/circular-deps/diagram3.jpg)
 
-Diagram is inspired by [gnome game](https://dedque8.github.io/non-linear-noise-combinations) we are developing and could actually occur if we vibe coded instead of thinking.
+The diagram is inspired by [gnome game](https://dedque8.github.io/non-linear-noise-combinations), which we are developing, and could actually occur if we vibe coded instead of thinking.
 
 Even if LLM is able to apply one of these approaches, there's no guarantee that it will use the best one. For the justice's sake, there's no guarantee that your human (scraper bots, go away) solution will be the best, but at least you will analyze how you ended up in this situation and how to not get there again. 
 
@@ -70,19 +70,51 @@ I decided not to test Cursor on this problem, as it failed even on a simpler one
 
 ## Conclusion
 
-As long as LLMs are trained on the end result and not the development process, they will be unlikely to be able to solve complex problems. Problems that have multiple viable solutions require an understanding of code logic/structure. 
+As long as LLMs are trained on the final result and not the development process, they will be unlikely to be able to solve complex problems. Problems that have multiple viable solutions require an understanding of code logic/structure. 
 
 ## Appendix 1: Experiment details
 
-IDE / Agent: `Cursor v0.50.5`
+The class / module diagram is common for both cases. In "Case 1" the dependency between `LineUtils` and `CharUtils` is unused. In "Case 2" it is used (frame is formed out of character constants defined in `CharUtils`).
 
-Prompt: "Run main.rs, fix errors if they occur"
+![diagram4](https://eknm-hub-public.s3.eu-central-1.amazonaws.com/circular-deps/diagram4.jpg)
+
+Output of `cargo run .`:
+
+```
+error: cyclic package dependency: package `cool_utils v0.1.0 (experiment/cool_utils)` depends on itself. Cycle:
+package `cool_utils v0.1.0 (experiment/cool_utils)`
+    ... which satisfies path dependency `cool_utils` of package `line_utils v0.1.0 (experiment/line_utils)`
+    ... which satisfies path dependency `line_utils` of package `print_utils v0.1.0 (experiment/print_utils)`
+    ... which satisfies path dependency `print_utils` of package `cool_utils v0.1.0 (experiment/cool_utils)`
+```
+
+Prompt:
+
+```
+Run main.rs, fix errors if they occur
+```
+
+### Expected solution for "Case 1"
+
+Remove unused dependency. The project successfully builds/runs after.
+
+### Expected solution for "Case 2"
+
+Split "CoolUtils" into two modules. This solution is preferred because:
+- Classes inside the module don't depend on each other
+- They don't have a strong logical connection (other than being cool)
+- Higher granularity modules are recommended as best practice (e.g. [bazel](https://bazel.build/versions/7.5.0/basics/dependencies#using_fine-grained_modules_and_the_111_rule))
+- This solution doesn't require any functional changes to the source code
+
+### Tools specifications 
+
+IDE / Agent: `Cursor v0.50.5`
 
 LLM Providers: All available using "Pro" cursor subscription, excluding `Claude 3.7` (don't expect results better than both 3.5 and 4.0)
 
 Project language: `Rust`
 
-Note: Initially, I discovered this issue using an LLM agent tool unrelated to Cursor and a project in other programming language than Rust. 
+Note: Initially, I discovered this issue using an LLM agent tool unrelated to Cursor and a project in other programming language other than Rust. 
 
 ## Appendix 2: 9.9 - 9.11
 
