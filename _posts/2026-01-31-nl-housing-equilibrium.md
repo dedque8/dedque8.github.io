@@ -1,9 +1,9 @@
 ---
 layout: post
-title:  "4% rule in the Netherlands"
+title:  "5% rule in the Netherlands"
 date:   2026-01-31 00:00:00
 categories: finance
-image: nl-housing.jpg
+image: nl-housing.jpeg
 ---
  
 One of my favourite finance YouTubers, Ben Felix, made [multiple videos](https://www.youtube.com/watch?v=Uwl3-jBNEd4) on the "Rent vs Buy" topic, addressing different aspects of this question. One common conclusion is a 5% rule, which states: "If your yearly rent is less than 5% of the house price, renting may be more financially beneficial." Facing the same question in real life, I decided to do my own calculations with some additional considerations. Surprisingly, I arrived at roughly the same number.
